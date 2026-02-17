@@ -1,0 +1,47 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8765,
+    "public_base_url": "auto"
+  },
+  "cast": {
+    "friendly_name": "Living Room TV",
+    "device_uuid": null,
+    "ip": null,
+    "wake_on_lan_mac": null,
+    "stop_app_before_cast": true,
+    "stop_on_exit": true,
+    "status_poll_seconds": 2.0,
+    "status_miss_limit": 3,
+    "status_switch_confirmations": 2,
+    "status_startup_grace_seconds": 10.0,
+    "status_end_on_unavailable": false,
+    "status_unavailable_log_every": 5,
+    "page_heartbeat_required": true,
+    "page_heartbeat_timeout_seconds": 20.0,
+    "page_heartbeat_start_grace_seconds": 20.0,
+    "volume": 0.7
+  },
+  "page": {
+    "title": "Alarm Clock",
+    "time_format_24h": false,
+    "key_debug_enabled": true,
+    "sound": {
+      "enabled": true,
+      "frequency_hz": 880,
+      "duration_ms": 300,
+      "volume": 0.2
+    },
+    "rules": [
+      {
+        "name": "flash-red-after-8am",
+        "start": "08:00",
+        "end": null,
+        "class_name": "flash-red"
+      }
+    ]
+  },
+  "debug": {
+    "log_file": "runtime_debug.log"
+  }
+}

@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cast Clock</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --fg: #f8fafc;
+      --accent: #ef4444;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        radial-gradient(circle at 20% 20%, #1e293b 0%, #0f172a 35%, #020617 100%);
+      color: var(--fg);
+      overflow: hidden;
+    }
+
+    .wrap {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    .title {
+      position: absolute;
+      top: 3vh;
+      width: 100%;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: clamp(14px, 2vw, 28px);
+      opacity: 0.9;
+    }
+
+    .controls {
+      position: absolute;
+      right: 2vw;
+      bottom: 3vh;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .control-btn {
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(2, 6, 23, 0.55);
+      color: #e2e8f0;
+      border-radius: 12px;
+      padding: 0.6rem 0.9rem;
+      font-size: clamp(12px, 1.2vw, 18px);
+      letter-spacing: 0.04em;
+      cursor: pointer;
+    }
+
+    .control-btn:focus-visible {
+      outline: 2px solid rgba(239, 68, 68, 0.9);
+      outline-offset: 2px;
+    }
+
+    .control-btn:active {
+      transform: translateY(1px);
+    }
+
+    .key-debug-panel {
+      position: absolute;
+      left: 2vw;
+      top: 6vh;
+      width: min(44vw, 700px);
+      max-height: 42vh;
+      overflow: auto;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(2, 6, 23, 0.68);
+      border-radius: 12px;
+      padding: 0.7rem 0.8rem;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: clamp(10px, 1vw, 14px);
+      line-height: 1.35;
+      white-space: pre-wrap;
+      color: #cbd5e1;
+    }
+
+    .key-debug-panel.hidden {
+      display: none;
+    }
+
+    .key-debug-title {
+      color: #f8fafc;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      letter-spacing: 0.02em;
+    }
+
+    .key-debug-last {
+      color: #e2e8f0;
+      margin-bottom: 0.35rem;
+    }
+
+    .key-debug-help {
+      color: #94a3b8;
+      margin-bottom: 0.35rem;
+    }
+
+    #time {
+      font-weight: 800;
+      font-size: clamp(64px, 16vw, 240px);
+      line-height: 1;
+      text-shadow: 0 0 24px rgba(255, 255, 255, 0.15);
+      transition: color 0.25s ease;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      padding: 0 2vw;
+    }
+
+    .flash-red {
+      color: var(--accent);
+      animation: flash-red 1s step-end infinite;
+    }
+
+    @keyframes flash-red {
+      0% { opacity: 1; }
+      50% { opacity: 0.15; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="title" id="title"></div>
+  <div class="controls">
+    <button class="control-btn" id="test-chime" type="button">Test Chime</button>
+    <button class="control-btn" id="mute-chime" type="button">Mute: Off</button>
+    <button class="control-btn" id="stop-cast" type="button">Stop Cast</button>
+    <button class="control-btn" id="key-debug-toggle" type="button">Key Debug: On</button>
+  </div>
+  <div class="key-debug-panel" id="key-debug-panel">
+    <div class="key-debug-title">Key Debug</div>
+    <div class="key-debug-help">Hotkeys: Enter/C=Chime, M=Mute, Back/Esc=Stop Cast</div>
+    <div class="key-debug-last" id="key-debug-last">Waiting for key input...</div>
+    <div id="key-debug-list"></div>
+  </div>
+  <div class="wrap">
+    <div id="time">--:--</div>
+  </div>
+
+  <script>
+    const config = {{ page_config_json | safe }};
+    const castToken = String(config.cast_token || "");
+
+    const titleEl = document.getElementById("title");
+    const timeEl = document.getElementById("time");
+    const testChimeButton = document.getElementById("test-chime");
+    const muteChimeButton = document.getElementById("mute-chime");
+    const stopCastButton = document.getElementById("stop-cast");
+    const keyDebugToggleButton = document.getElementById("key-debug-toggle");
+    const keyDebugPanel = document.getElementById("key-debug-panel");
+    const keyDebugLast = document.getElementById("key-debug-last");
+    const keyDebugList = document.getElementById("key-debug-list");
+
+    titleEl.textContent = config.title || "Alarm Clock";
+
+    function toMinutes(hhmm) {
+      const [h, m] = hhmm.split(":").map(Number);
+      return h * 60 + m;
+    }
+
+    function ruleIsActive(rule, now) {
+      const start = toMinutes(rule.start);
+      const end = rule.end ? toMinutes(rule.end) : null;
+      const minutes = now.getHours() * 60 + now.getMinutes();
+
+      if (end === null) {
+        return minutes >= start;
+      }
+
+      if (end >= start) {
+        return minutes >= start && minutes < end;
+      }
+
+      return minutes >= start || minutes < end;
+    }
+
+    function applyRules(now) {
+      for (const rule of config.rules || []) {
+        const active = ruleIsActive(rule, now);
+        timeEl.classList.toggle(rule.class_name, active);
+      }
+    }
+
+    function formatTime(now, use24h) {
+      const opts = {
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: !use24h,
+      };
+      return now.toLocaleTimeString([], opts);
+    }
+
+    function tick() {
+      const now = new Date();
+      timeEl.textContent = formatTime(now, !!config.time_format_24h);
+      applyRules(now);
+    }
+
+    let audioCtx = null;
+    let lastSeenChimeSeq = null;
+    let chimeMuted = false;
+    let fiveMinuteTimeoutId = null;
+    let fiveMinuteIntervalId = null;
+    let remotePollFallbackId = null;
+    let chimeEventSource = null;
+    let startupBeepPlayed = false;
+    let tickIntervalId = null;
+    let isShuttingDown = false;
+    let keyDebugEnabled = !!config.key_debug_enabled;
+    let keyDebugLines = [];
+    let pageHeartbeatIntervalId = null;
+
+    function setMuteState(value) {
+      chimeMuted = !!value;
+      muteChimeButton.textContent = `Mute: ${chimeMuted ? "On" : "Off"}`;
+    }
+
+    function setKeyDebugEnabled(value) {
+      keyDebugEnabled = !!value;
+      keyDebugPanel.classList.toggle("hidden", !keyDebugEnabled);
+      keyDebugToggleButton.textContent = `Key Debug: ${keyDebugEnabled ? "On" : "Off"}`;
+    }
+
+    function formatEventTime(tsMs) {
+      const dt = new Date(tsMs);
+      const hhmmss = dt.toLocaleTimeString([], { hour12: false });
+      const millis = String(tsMs % 1000).padStart(3, "0");
+      return `${hhmmss}.${millis}`;
+    }
+
+    function pushKeyDebugLine(line) {
+      keyDebugLines.unshift(line);
+      if (keyDebugLines.length > 14) {
+        keyDebugLines = keyDebugLines.slice(0, 14);
+      }
+      keyDebugList.textContent = keyDebugLines.join("\n");
+    }
+
+    function sendKeyDebugEvent(payload) {
+      const body = JSON.stringify(payload);
+      try {
+        if (navigator.sendBeacon) {
+          const blob = new Blob([body], { type: "application/json" });
+          const ok = navigator.sendBeacon("/api/keys", blob);
+          if (ok) {
+            return;
+          }
+        }
+      } catch (_) {
+        // Fall through to fetch.
+      }
+
+      fetch("/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: true,
+      }).catch(() => {});
+    }
+
+    function postJsonKeepalive(url, payload) {
+      const body = JSON.stringify(payload);
+      try {
+        if (navigator.sendBeacon) {
+          const blob = new Blob([body], { type: "application/json" });
+          const ok = navigator.sendBeacon(url, blob);
+          if (ok) {
+            return;
+          }
+        }
+      } catch (_) {
+        // Fall through to fetch.
+      }
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: true,
+      }).catch(() => {});
+    }
+
+    function sendPageHeartbeat(eventName) {
+      if (!castToken) {
+        return;
+      }
+      postJsonKeepalive("/api/page/heartbeat", {
+        token: castToken,
+        event: eventName,
+        visible: pageIsActive(),
+        ts: Date.now(),
+      });
+    }
+
+    function startPageHeartbeat() {
+      if (!castToken || pageHeartbeatIntervalId !== null || isShuttingDown) {
+        return;
+      }
+      sendPageHeartbeat("start");
+      pageHeartbeatIntervalId = setInterval(() => {
+        sendPageHeartbeat("alive");
+      }, 4000);
+    }
+
+    function stopPageHeartbeat(eventName = "stop") {
+      if (pageHeartbeatIntervalId !== null) {
+        clearInterval(pageHeartbeatIntervalId);
+        pageHeartbeatIntervalId = null;
+      }
+      sendPageHeartbeat(eventName);
+    }
+
+    function describeKeyEvent(event, handled, action) {
+      const ts = Date.now();
+      const type = String(event.type || "");
+      const key = String(event.key || "");
+      const code = String(event.code || "");
+      const keyCode = Number(event.keyCode || 0);
+      const which = Number(event.which || 0);
+      const repeat = !!event.repeat;
+      const defaultPrevented = !!event.defaultPrevented;
+      const actionLabel = action || "(none)";
+      const handledLabel = handled ? "yes" : "no";
+
+      if (keyDebugEnabled) {
+        keyDebugLast.textContent =
+          `${formatEventTime(ts)} ${type} key='${key}' code='${code}' keyCode=${keyCode} ` +
+          `which=${which} repeat=${repeat} handled=${handledLabel} action=${actionLabel}`;
+
+        pushKeyDebugLine(
+          `${formatEventTime(ts)} ${type.padEnd(7)} key='${key}' code='${code}' ` +
+          `k=${keyCode} w=${which} rep=${repeat ? "1" : "0"} handled=${handledLabel} action=${actionLabel}`
+        );
+      }
+
+      sendKeyDebugEvent({
+        ts,
+        type,
+        key,
+        code,
+        keyCode,
+        which,
+        repeat,
+        handled,
+        action: actionLabel,
+        defaultPrevented,
+      });
+    }
+
+    function pageIsActive() {
+      return document.visibilityState === "visible" && !document.hidden && !isShuttingDown;
+    }
+
+    function shouldPlayChime() {
+      const sound = config.sound || {};
+      return !!sound.enabled && !chimeMuted && pageIsActive();
+    }
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioCtx;
+    }
+
+    async function closeAudioContext() {
+      if (!audioCtx) {
+        return;
+      }
+      try {
+        await audioCtx.close();
+      } catch (_) {
+        // Ignore close failures.
+      }
+      audioCtx = null;
+    }
+
+    async function playWavFallback(sound) {
+      if (!shouldPlayChime()) {
+        return;
+      }
+      try {
+        const f = Number(sound.frequency_hz || 880);
+        const d = Number(sound.duration_ms || 300);
+        const v = Number(sound.volume || 0.2);
+        const audio = new Audio(`/chime.wav?f=${encodeURIComponent(f)}&d=${encodeURIComponent(d)}&v=${encodeURIComponent(v)}&t=${Date.now()}`);
+        audio.volume = 1.0;
+        await audio.play();
+      } catch (_) {
+        // Ignore playback errors when cast runtime blocks autoplay.
+      }
+    }
+
+    async function fetchChimeSeq() {
+      try {
+        const response = await fetch("/api/chime", { cache: "no-store" });
+        if (!response.ok) {
+          return null;
+        }
+        const data = await response.json();
+        return Number(data.seq);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    async function pollChimeStateSlow() {
+      const seq = await fetchChimeSeq();
+      if (!Number.isFinite(seq)) {
+        return;
+      }
+      if (lastSeenChimeSeq === null) {
+        lastSeenChimeSeq = seq;
+        return;
+      }
+      if (seq > lastSeenChimeSeq) {
+        lastSeenChimeSeq = seq;
+        await playBeep();
+      }
+    }
+
+    function stopRemoteChimeListener() {
+      if (chimeEventSource) {
+        chimeEventSource.close();
+        chimeEventSource = null;
+      }
+      if (remotePollFallbackId !== null) {
+        clearInterval(remotePollFallbackId);
+        remotePollFallbackId = null;
+      }
+    }
+
+    async function triggerChime() {
+      try {
+        const response = await fetch("/api/chime", { method: "POST" });
+        if (!response.ok) {
+          return;
+        }
+        const data = await response.json();
+        const seq = Number(data.seq);
+        if (Number.isFinite(seq)) {
+          lastSeenChimeSeq = seq;
+        }
+      } catch (_) {
+        // Ignore network errors.
+      }
+      await playBeep();
+    }
+
+    async function startRemoteChimeListener() {
+      if (chimeEventSource || remotePollFallbackId !== null) {
+        return;
+      }
+
+      const initial = await fetchChimeSeq();
+      if (Number.isFinite(initial)) {
+        lastSeenChimeSeq = initial;
+      } else {
+        lastSeenChimeSeq = 0;
+      }
+
+      if ("EventSource" in window) {
+        chimeEventSource = new EventSource("/api/chime/stream");
+        chimeEventSource.addEventListener("chime", async (event) => {
+          let data = null;
+          try {
+            data = JSON.parse(event.data);
+          } catch (_) {
+            return;
+          }
+
+          const seq = Number(data.seq);
+          if (!Number.isFinite(seq)) {
+            return;
+          }
+          if (lastSeenChimeSeq === null) {
+            lastSeenChimeSeq = seq;
+            return;
+          }
+          if (seq > lastSeenChimeSeq) {
+            lastSeenChimeSeq = seq;
+            await playBeep();
+          }
+        });
+        chimeEventSource.onerror = () => {
+          if (isShuttingDown) {
+            return;
+          }
+          stopRemoteChimeListener();
+          remotePollFallbackId = setInterval(() => {
+            pollChimeStateSlow();
+          }, 15000);
+        };
+        return;
+      }
+
+      // Very old runtimes fallback to low-frequency polling.
+      remotePollFallbackId = setInterval(() => {
+        pollChimeStateSlow();
+      }, 15000);
+    }
+
+    async function playBeep() {
+      if (!shouldPlayChime()) {
+        return;
+      }
+
+      const sound = config.sound || {};
+      const ctx = getAudioCtx();
+      try {
+        if (ctx.state !== "running") {
+          await ctx.resume();
+        }
+        if (ctx.state !== "running") {
+          await playWavFallback(sound);
+          return;
+        }
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const now = ctx.currentTime;
+        const durationSec = Number(sound.duration_ms || 300) / 1000;
+        const targetGain = Number(sound.volume || 0.2);
+        osc.type = "sine";
+        osc.frequency.value = Number(sound.frequency_hz || 880);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, targetGain), now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + Math.max(0.02, durationSec));
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + Math.max(0.02, durationSec));
+      } catch (_) {
+        await playWavFallback(sound);
+      }
+    }
+
+    function startFiveMinuteChime() {
+      if (fiveMinuteTimeoutId !== null || fiveMinuteIntervalId !== null) {
+        return;
+      }
+      const now = new Date();
+      const currentMs = now.getTime();
+      const periodMs = 5 * 60 * 1000;
+      const delayToNext = periodMs - (currentMs % periodMs);
+
+      if (!startupBeepPlayed) {
+        startupBeepPlayed = true;
+        playBeep();
+      }
+
+      fiveMinuteTimeoutId = setTimeout(() => {
+        fiveMinuteTimeoutId = null;
+        playBeep();
+        fiveMinuteIntervalId = setInterval(() => {
+          playBeep();
+        }, periodMs);
+      }, delayToNext);
+    }
+
+    function stopFiveMinuteChime() {
+      if (fiveMinuteTimeoutId !== null) {
+        clearTimeout(fiveMinuteTimeoutId);
+        fiveMinuteTimeoutId = null;
+      }
+      if (fiveMinuteIntervalId !== null) {
+        clearInterval(fiveMinuteIntervalId);
+        fiveMinuteIntervalId = null;
+      }
+    }
+
+    async function stopCastFromPage() {
+      sendPageHeartbeat("stop-cast");
+      try {
+        navigator.sendBeacon("/api/cast/stop", "1");
+      } catch (_) {
+        // Ignore sendBeacon failure.
+      }
+      try {
+        await fetch("/api/cast/stop", { method: "POST", keepalive: true });
+      } catch (_) {
+        // Ignore network failure.
+      }
+    }
+
+    async function handleVisibilityChange() {
+      if (pageIsActive()) {
+        sendPageHeartbeat("visible");
+        startFiveMinuteChime();
+        startRemoteChimeListener();
+        return;
+      }
+
+      sendPageHeartbeat("hidden");
+      stopFiveMinuteChime();
+      stopRemoteChimeListener();
+      await closeAudioContext();
+    }
+
+    function shutdownPage() {
+      if (isShuttingDown) {
+        return;
+      }
+      isShuttingDown = true;
+      stopPageHeartbeat("shutdown");
+      stopFiveMinuteChime();
+      stopRemoteChimeListener();
+      if (tickIntervalId !== null) {
+        clearInterval(tickIntervalId);
+        tickIntervalId = null;
+      }
+      closeAudioContext();
+    }
+
+    function classifyHotkey(event) {
+      if (event.type !== "keydown") {
+        return { handled: false, action: "" };
+      }
+      const key = String(event.key || "").toLowerCase();
+      const code = String(event.code || "").toLowerCase();
+      const keyCode = Number(event.keyCode || 0);
+
+      const exitKeys = new Set([
+        "backspace",
+        "escape",
+        "browserback",
+        "goback",
+        "home",
+        "browserhome",
+        "gohome",
+        "launchapplication1",
+        "launchapplication2",
+        "appswitch",
+        "guide",
+        "mediatopmenu",
+        "contextmenu",
+      ]);
+      const exitCodes = new Set([
+        "escape",
+        "browserback",
+        "home",
+        "browserhome",
+      ]);
+      const exitKeyCodes = new Set([
+        3,    // Android KEYCODE_HOME
+        4,    // Android KEYCODE_BACK
+        172,  // Android KEYCODE_GUIDE
+        187,  // Android KEYCODE_APP_SWITCH
+        288,  // Android KEYCODE_PROFILE_SWITCH
+      ]);
+
+      if (key === "c" || key === "enter" || code === "enter" || code === "numpadenter") {
+        triggerChime();
+        return { handled: true, action: "trigger-chime" };
+      }
+
+      if (key === "m") {
+        setMuteState(!chimeMuted);
+        return { handled: true, action: "toggle-mute" };
+      }
+
+      const isProfileLike = key.includes("profile") || code.includes("profile");
+      const isExitLike =
+        exitKeys.has(key) ||
+        exitCodes.has(code) ||
+        exitKeyCodes.has(keyCode) ||
+        isProfileLike;
+
+      if (isExitLike) {
+        event.preventDefault();
+        stopCastFromPage();
+        shutdownPage();
+        return { handled: true, action: "stop-cast-exit-key" };
+      }
+
+      return { handled: false, action: "" };
+    }
+
+    function handleAnyKeyEvent(event) {
+      const result = classifyHotkey(event);
+      describeKeyEvent(event, result.handled, result.action);
+    }
+
+    setMuteState(false);
+    setKeyDebugEnabled(!!config.key_debug_enabled);
+    tick();
+    tickIntervalId = setInterval(tick, 1000);
+    startPageHeartbeat();
+    handleVisibilityChange();
+
+    document.addEventListener("visibilitychange", () => {
+      handleVisibilityChange();
+    });
+    window.addEventListener("pagehide", () => {
+      stopPageHeartbeat("pagehide");
+      shutdownPage();
+    });
+    window.addEventListener("beforeunload", () => {
+      stopPageHeartbeat("beforeunload");
+      shutdownPage();
+    });
+
+    testChimeButton.addEventListener("click", () => {
+      triggerChime();
+    });
+    muteChimeButton.addEventListener("click", () => {
+      setMuteState(!chimeMuted);
+    });
+    stopCastButton.addEventListener("click", () => {
+      stopCastFromPage();
+      shutdownPage();
+    });
+    keyDebugToggleButton.addEventListener("click", () => {
+      setKeyDebugEnabled(!keyDebugEnabled);
+    });
+
+    window.addEventListener("keydown", handleAnyKeyEvent, true);
+    window.addEventListener("keyup", handleAnyKeyEvent, true);
+  </script>
+</body>
+</html>
