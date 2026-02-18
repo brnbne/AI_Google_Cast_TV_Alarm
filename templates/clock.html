@@ -223,6 +223,17 @@
     let keyDebugEnabled = !!config.key_debug_enabled;
     let keyDebugLines = [];
     let pageHeartbeatIntervalId = null;
+    const antiIdleCfg = config.anti_idle || {};
+    const antiIdleEnabled = antiIdleCfg.enabled !== false;
+    const antiIdleWakeLockEnabled = antiIdleCfg.screen_wake_lock !== false;
+    const antiIdleAudioEnabled = antiIdleCfg.audio_keepalive !== false;
+    const antiIdleAudioGain = Number(antiIdleCfg.audio_gain || 0.0001);
+    const antiIdleHeartbeatMs = Math.max(5000, Number(antiIdleCfg.ping_interval_ms || 30000));
+    let antiIdleWakeLock = null;
+    let antiIdleWakeLockTimerId = null;
+    let antiIdleAudioOsc = null;
+    let antiIdleAudioGainNode = null;
+    let antiIdlePingIntervalId = null;
 
     function setMuteState(value) {
       chimeMuted = !!value;
@@ -367,6 +378,111 @@
     function shouldPlayChime() {
       const sound = config.sound || {};
       return !!sound.enabled && !chimeMuted && pageIsActive();
+    }
+
+    async function acquireWakeLock() {
+      if (!antiIdleEnabled || !antiIdleWakeLockEnabled || !("wakeLock" in navigator) || !pageIsActive()) {
+        return;
+      }
+      try {
+        antiIdleWakeLock = await navigator.wakeLock.request("screen");
+        antiIdleWakeLock.addEventListener("release", () => {
+          antiIdleWakeLock = null;
+        });
+      } catch (_) {
+        antiIdleWakeLock = null;
+      }
+    }
+
+    async function releaseWakeLock() {
+      if (!antiIdleWakeLock) {
+        return;
+      }
+      try {
+        await antiIdleWakeLock.release();
+      } catch (_) {
+        // Ignore release errors.
+      }
+      antiIdleWakeLock = null;
+    }
+
+    async function startAntiIdleAudio() {
+      if (!antiIdleEnabled || !antiIdleAudioEnabled || !pageIsActive()) {
+        return;
+      }
+      const ctx = getAudioCtx();
+      try {
+        if (ctx.state !== "running") {
+          await ctx.resume();
+        }
+        if (ctx.state !== "running") {
+          return;
+        }
+        if (antiIdleAudioOsc) {
+          return;
+        }
+        antiIdleAudioOsc = ctx.createOscillator();
+        antiIdleAudioGainNode = ctx.createGain();
+        antiIdleAudioOsc.type = "sine";
+        antiIdleAudioOsc.frequency.value = 30;
+        antiIdleAudioGainNode.gain.value = Math.max(0.0, Math.min(0.01, antiIdleAudioGain));
+        antiIdleAudioOsc.connect(antiIdleAudioGainNode);
+        antiIdleAudioGainNode.connect(ctx.destination);
+        antiIdleAudioOsc.start();
+      } catch (_) {
+        antiIdleAudioOsc = null;
+        antiIdleAudioGainNode = null;
+      }
+    }
+
+    function stopAntiIdleAudio() {
+      if (antiIdleAudioOsc) {
+        try {
+          antiIdleAudioOsc.stop();
+        } catch (_) {}
+        try {
+          antiIdleAudioOsc.disconnect();
+        } catch (_) {}
+      }
+      if (antiIdleAudioGainNode) {
+        try {
+          antiIdleAudioGainNode.disconnect();
+        } catch (_) {}
+      }
+      antiIdleAudioOsc = null;
+      antiIdleAudioGainNode = null;
+    }
+
+    async function startAntiIdle() {
+      if (!antiIdleEnabled || isShuttingDown) {
+        return;
+      }
+      await acquireWakeLock();
+      await startAntiIdleAudio();
+
+      if (antiIdleWakeLockTimerId === null) {
+        antiIdleWakeLockTimerId = setInterval(() => {
+          acquireWakeLock();
+        }, 30000);
+      }
+      if (antiIdlePingIntervalId === null) {
+        antiIdlePingIntervalId = setInterval(() => {
+          sendPageHeartbeat("anti-idle");
+        }, antiIdleHeartbeatMs);
+      }
+    }
+
+    async function stopAntiIdle() {
+      if (antiIdleWakeLockTimerId !== null) {
+        clearInterval(antiIdleWakeLockTimerId);
+        antiIdleWakeLockTimerId = null;
+      }
+      if (antiIdlePingIntervalId !== null) {
+        clearInterval(antiIdlePingIntervalId);
+        antiIdlePingIntervalId = null;
+      }
+      stopAntiIdleAudio();
+      await releaseWakeLock();
     }
 
     function getAudioCtx() {
@@ -602,12 +718,14 @@
         sendPageHeartbeat("visible");
         startFiveMinuteChime();
         startRemoteChimeListener();
+        startAntiIdle();
         return;
       }
 
       sendPageHeartbeat("hidden");
       stopFiveMinuteChime();
       stopRemoteChimeListener();
+      await stopAntiIdle();
       await closeAudioContext();
     }
 
@@ -623,6 +741,7 @@
         clearInterval(tickIntervalId);
         tickIntervalId = null;
       }
+      stopAntiIdle();
       closeAudioContext();
     }
 

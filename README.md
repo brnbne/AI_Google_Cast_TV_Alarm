@@ -71,6 +71,15 @@ Cast session monitoring:
   - `cast.page_heartbeat_timeout_seconds`
   - `cast.page_heartbeat_start_grace_seconds`
 
+TV idle / screensaver prevention:
+
+- Configure `page.anti_idle` to keep the TV awake while the clock is active:
+  - `enabled`: master switch
+  - `screen_wake_lock`: request browser screen wake lock when supported
+  - `audio_keepalive`: run near-silent continuous audio to discourage idle/screensaver
+  - `audio_gain`: keepalive gain (very low by default)
+  - `ping_interval_ms`: heartbeat interval while active
+
 Process/lifecycle debugging:
 
 - Server logs now include structured `DBG` lines for cast attempts, monitor events, and shutdown paths.

@@ -26,6 +26,13 @@
     "title": "Alarm Clock",
     "time_format_24h": false,
     "key_debug_enabled": true,
+    "anti_idle": {
+      "enabled": true,
+      "screen_wake_lock": true,
+      "audio_keepalive": true,
+      "audio_gain": 0.0001,
+      "ping_interval_ms": 30000
+    },
     "sound": {
       "enabled": true,
       "frequency_hz": 880,

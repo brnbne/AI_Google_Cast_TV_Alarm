@@ -567,7 +567,9 @@ def monitor_active_cast_session(
                 continue
 
             unknown_count = 0
-            dashcast_active = app_id == APP_DASHCAST and APP_NAMESPACE in namespaces
+            # Some TVs keep DashCast app_id but intermittently drop the custom
+            # namespace list to default receiver namespaces.
+            dashcast_active = app_id == APP_DASHCAST
             if dashcast_active:
                 non_dashcast_count = 0
                 continue
@@ -654,6 +656,7 @@ def build_app(config: Dict[str, Any]) -> Flask:
             "rules": normalize_rules(rules),
             "cast_token": cast_token,
             "key_debug_enabled": bool(page.get("key_debug_enabled", True)),
+            "anti_idle": page.get("anti_idle", {}),
         }
         return render_template("clock.html", page_config_json=json.dumps(payload))
 
@@ -739,7 +742,8 @@ def build_app(config: Dict[str, Any]) -> Flask:
                 "app_id": app_id,
                 "display_name": status.display_name if status else None,
                 "namespaces": namespaces,
-                "dashcast_active": app_id == APP_DASHCAST and APP_NAMESPACE in namespaces,
+                "dashcast_active": app_id == APP_DASHCAST,
+                "dashcast_namespace_present": APP_NAMESPACE in namespaces,
                 **runtime,
                 **heartbeat,
             }

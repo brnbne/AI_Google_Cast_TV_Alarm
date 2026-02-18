@@ -296,3 +296,116 @@ DBG #25 stop_active_cast_begin disconnect=True reason='flask-run-returned' stop_
 DBG #26 cast_end app_id='84912283' namespaces=['urn:x-cast:com.google.cast.debugoverlay', 'urn:x-cast:com.google.cast.cac', 'urn:x-cast:com.madmod.dashcast'] reason='flask-run-returned' thread='MainThread'
 DBG #27 stop_active_cast_done app_id='84912283' namespaces=['urn:x-cast:com.google.cast.debugoverlay', 'urn:x-cast:com.google.cast.cac', 'urn:x-cast:com.madmod.dashcast'] reason='flask-run-returned' thread='MainThread'
 DBG #28 cleanup_skipped_already_done reason='flask-run-returned' thread='MainThread'
+DBG #3 debug_log_path_set path='C:\\Users\\bmboo\\OneDrive\\Documents\\Projects\\Programming\\AI_Google_Cast_TV_Alarm\\runtime_debug.log' thread='MainThread'
+DBG #4 flask_config host='0.0.0.0' port=8765 thread='MainThread'
+DBG #5 cast_start_begin clock_url='auto-detected://<host-ip>/clock' retries=3 thread='cast-start-thread'
+DBG #6 cast_thread_started thread='MainThread' thread_name='cast-start-thread'
+DBG #7 cast_start_attempt attempt=1 thread='cast-start-thread'
+DBG #8 flask_run_start thread='MainThread'
+DBG #9 public_base_url_resolved cast_host='192.168.0.37' source='auto' thread='cast-start-thread' url='http://192.168.0.19:8765'
+DBG #10 cast_page_token_set thread='cast-start-thread' token='a9bfd3deef674ae08a3dd29137f4374b'
+DBG #11 clock_target_url thread='cast-start-thread' url='http://192.168.0.19:8765/clock?cast_token=a9bfd3deef674ae08a3dd29137f4374b'
+DBG #12 cast_monitor_start poll_seconds=2.0 session_id=1 thread='cast-start-thread'
+DBG #13 cast_start_success attempt=1 thread='cast-start-thread'
+DBG #14 cast_page_heartbeat count=1 heartbeat_event='start' remote_addr='192.168.0.37' thread='Thread-7 (process_request_thread)' visible=True
+DBG #15 cast_page_heartbeat count=2 heartbeat_event='visible' remote_addr='192.168.0.37' thread='Thread-8 (process_request_thread)' visible=True
+DBG #16 cast_page_heartbeat count=3 heartbeat_event='alive' remote_addr='192.168.0.37' thread='Thread-11 (process_request_thread)' visible=True
+DBG #17 cast_page_heartbeat count=20 heartbeat_event='alive' remote_addr='192.168.0.37' thread='Thread-28 (process_request_thread)' visible=True
+DBG #18 cast_page_heartbeat count=40 heartbeat_event='alive' remote_addr='192.168.0.37' thread='Thread-48 (process_request_thread)' visible=True
+DBG #19 cast_page_heartbeat count=60 heartbeat_event='alive' remote_addr='192.168.0.37' thread='Thread-68 (process_request_thread)' visible=True
+DBG #20 cast_page_heartbeat count=80 heartbeat_event='alive' remote_addr='192.168.0.37' thread='Thread-88 (process_request_thread)' visible=True
+DBG #21 cast_page_heartbeat count=100 heartbeat_event='alive' remote_addr='192.168.0.37' thread='Thread-108 (process_request_thread)' visible=True
+DBG #22 cast_page_heartbeat count=120 heartbeat_event='alive' remote_addr='192.168.0.37' thread='Thread-128 (process_request_thread)' visible=True
+DBG #23 cast_page_heartbeat count=140 heartbeat_event='alive' remote_addr='192.168.0.37' thread='Thread-148 (process_request_thread)' visible=True
+DBG #24 cast_end app_id='84912283' namespaces=['urn:x-cast:com.google.cast.sse', 'urn:x-cast:com.google.cast.cac'] reason='app-switched:84912283' thread='Thread-5 (monitor_active_cast_session)'
+DBG #25 cast_monitor_end app_id='84912283' display_name='DashCast' namespaces=['urn:x-cast:com.google.cast.sse', 'urn:x-cast:com.google.cast.cac'] reason='app-switched' thread='Thread-5 (monitor_active_cast_session)'
+DBG #26 process_exit_reason_set reason='flask-run-returned' thread='MainThread'
+DBG #27 flask_run_returned thread='MainThread'
+DBG #28 cleanup_begin reason='flask-run-returned' thread='MainThread'
+DBG #29 cast_monitor_stop_requested thread='MainThread'
+DBG #30 cleanup_run reason='flask-run-returned' stop_on_exit=True thread='MainThread'
+DBG #31 stop_active_cast_noop disconnect=True reason='flask-run-returned' stop_app=True thread='MainThread'
+DBG #32 cleanup_skipped_already_done reason='flask-run-returned' thread='MainThread'
+DBG #3 debug_log_path_set path='C:\\Users\\bmboo\\OneDrive\\Documents\\Projects\\Programming\\AI_Google_Cast_TV_Alarm\\runtime_debug.log' thread='MainThread'
+DBG #4 flask_config host='0.0.0.0' port=8765 thread='MainThread'
+DBG #5 cast_start_begin clock_url='auto-detected://<host-ip>/clock' retries=3 thread='cast-start-thread'
+DBG #6 cast_thread_started thread='MainThread' thread_name='cast-start-thread'
+DBG #7 cast_start_attempt attempt=1 thread='cast-start-thread'
+DBG #8 flask_run_start thread='MainThread'
+DBG #9 public_base_url_resolved cast_host='192.168.0.37' source='auto' thread='cast-start-thread' url='http://192.168.0.19:8765'
+DBG #10 cast_page_token_set thread='cast-start-thread' token='9bcbfbeba46e478ca78d3f63deb8c9d6'
+DBG #11 clock_target_url thread='cast-start-thread' url='http://192.168.0.19:8765/clock?cast_token=9bcbfbeba46e478ca78d3f63deb8c9d6'
+DBG #12 process_exit_reason_set reason='flask-run-returned' thread='MainThread'
+DBG #13 flask_run_returned thread='MainThread'
+DBG #14 cleanup_begin reason='flask-run-returned' thread='MainThread'
+DBG #15 cleanup_run reason='flask-run-returned' stop_on_exit=True thread='MainThread'
+DBG #16 stop_active_cast_begin disconnect=True reason='flask-run-returned' stop_app=True thread='MainThread'
+DBG #17 cast_end app_id=None namespaces=[] reason='flask-run-returned' thread='MainThread'
+DBG #18 stop_active_cast_done app_id=None namespaces=[] reason='flask-run-returned' thread='MainThread'
+DBG #19 cleanup_skipped_already_done reason='flask-run-returned' thread='MainThread'
+DBG #3 debug_log_path_set path='C:\\Users\\bmboo\\OneDrive\\Documents\\Projects\\Programming\\AI_Google_Cast_TV_Alarm\\runtime_debug.log' thread='MainThread'
+DBG #4 flask_config host='0.0.0.0' port=8765 thread='MainThread'
+DBG #5 cast_start_begin clock_url='auto-detected://<host-ip>/clock' retries=3 thread='cast-start-thread'
+DBG #6 cast_thread_started thread='MainThread' thread_name='cast-start-thread'
+DBG #7 cast_start_attempt attempt=1 thread='cast-start-thread'
+DBG #8 flask_run_start thread='MainThread'
+DBG #9 public_base_url_resolved cast_host='192.168.0.8' source='auto' thread='cast-start-thread' url='http://192.168.0.19:8765'
+DBG #10 cast_page_token_set thread='cast-start-thread' token='5df25b2ab21e4cfb880c8ad67f2723df'
+DBG #11 clock_target_url thread='cast-start-thread' url='http://192.168.0.19:8765/clock?cast_token=5df25b2ab21e4cfb880c8ad67f2723df'
+DBG #12 cast_monitor_start poll_seconds=2.0 session_id=1 thread='cast-start-thread'
+DBG #13 cast_start_success attempt=1 thread='cast-start-thread'
+DBG #14 cast_page_heartbeat count=1 heartbeat_event='start' remote_addr='192.168.0.8' thread='Thread-7 (process_request_thread)' visible=True
+DBG #15 cast_page_heartbeat count=2 heartbeat_event='visible' remote_addr='192.168.0.8' thread='Thread-8 (process_request_thread)' visible=True
+DBG #16 cast_page_heartbeat count=3 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-11 (process_request_thread)' visible=True
+DBG #17 cast_page_heartbeat count=20 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-35 (process_request_thread)' visible=True
+DBG #18 cast_page_heartbeat count=40 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-55 (process_request_thread)' visible=True
+DBG #19 cast_page_heartbeat count=60 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-75 (process_request_thread)' visible=True
+DBG #20 cast_page_heartbeat count=80 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-95 (process_request_thread)' visible=True
+DBG #21 cast_page_heartbeat count=100 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-115 (process_request_thread)' visible=True
+DBG #22 cast_page_heartbeat count=120 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-135 (process_request_thread)' visible=True
+DBG #23 cast_page_heartbeat count=140 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-155 (process_request_thread)' visible=True
+DBG #24 cast_page_heartbeat count=160 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-175 (process_request_thread)' visible=True
+DBG #25 cast_end app_id='84912283' namespaces=['urn:x-cast:com.google.cast.sse', 'urn:x-cast:com.google.cast.cac'] reason='app-switched:84912283' thread='Thread-5 (monitor_active_cast_session)'
+DBG #26 cast_monitor_end app_id='84912283' display_name='DashCast' namespaces=['urn:x-cast:com.google.cast.sse', 'urn:x-cast:com.google.cast.cac'] reason='app-switched' thread='Thread-5 (monitor_active_cast_session)'
+DBG #27 process_exit_reason_set reason='flask-run-returned' thread='MainThread'
+DBG #28 flask_run_returned thread='MainThread'
+DBG #29 cleanup_begin reason='flask-run-returned' thread='MainThread'
+DBG #30 cast_monitor_stop_requested thread='MainThread'
+DBG #31 cleanup_run reason='flask-run-returned' stop_on_exit=True thread='MainThread'
+DBG #32 stop_active_cast_noop disconnect=True reason='flask-run-returned' stop_app=True thread='MainThread'
+DBG #33 cleanup_skipped_already_done reason='flask-run-returned' thread='MainThread'
+DBG #3 debug_log_path_set path='C:\\Users\\bmboo\\OneDrive\\Documents\\Projects\\Programming\\AI_Google_Cast_TV_Alarm\\runtime_debug.log' thread='MainThread'
+DBG #4 flask_config host='0.0.0.0' port=8765 thread='MainThread'
+DBG #5 cast_start_begin clock_url='auto-detected://<host-ip>/clock' retries=3 thread='cast-start-thread'
+DBG #6 cast_thread_started thread='MainThread' thread_name='cast-start-thread'
+DBG #7 cast_start_attempt attempt=1 thread='cast-start-thread'
+DBG #8 flask_run_start thread='MainThread'
+DBG #9 public_base_url_resolved cast_host='192.168.0.8' source='auto' thread='cast-start-thread' url='http://192.168.0.19:8765'
+DBG #10 cast_page_token_set thread='cast-start-thread' token='1d95e670fdc741aaa8fe752830780d22'
+DBG #11 clock_target_url thread='cast-start-thread' url='http://192.168.0.19:8765/clock?cast_token=1d95e670fdc741aaa8fe752830780d22'
+DBG #12 cast_monitor_start poll_seconds=2.0 session_id=1 thread='cast-start-thread'
+DBG #13 cast_start_success attempt=1 thread='cast-start-thread'
+DBG #14 cast_page_heartbeat count=1 heartbeat_event='start' remote_addr='192.168.0.8' thread='Thread-7 (process_request_thread)' visible=True
+DBG #15 cast_page_heartbeat count=2 heartbeat_event='visible' remote_addr='192.168.0.8' thread='Thread-8 (process_request_thread)' visible=True
+DBG #16 cast_page_heartbeat count=3 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-11 (process_request_thread)' visible=True
+DBG #17 cast_page_heartbeat count=20 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-28 (process_request_thread)' visible=True
+DBG #18 cast_page_heartbeat count=40 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-48 (process_request_thread)' visible=True
+DBG #19 cast_page_heartbeat count=60 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-68 (process_request_thread)' visible=True
+DBG #20 cast_page_heartbeat count=80 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-88 (process_request_thread)' visible=True
+DBG #21 cast_page_heartbeat count=100 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-108 (process_request_thread)' visible=True
+DBG #22 cast_page_heartbeat count=120 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-128 (process_request_thread)' visible=True
+DBG #23 cast_page_heartbeat count=140 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-148 (process_request_thread)' visible=True
+DBG #24 cast_page_heartbeat count=160 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-168 (process_request_thread)' visible=True
+DBG #25 cast_page_heartbeat count=180 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-188 (process_request_thread)' visible=False
+DBG #26 cast_page_heartbeat count=200 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-208 (process_request_thread)' visible=False
+DBG #27 cast_page_heartbeat count=220 heartbeat_event='alive' remote_addr='192.168.0.8' thread='Thread-228 (process_request_thread)' visible=False
+DBG #28 process_exit_reason_set reason='flask-run-returned' thread='MainThread'
+DBG #29 flask_run_returned thread='MainThread'
+DBG #30 cleanup_begin reason='flask-run-returned' thread='MainThread'
+DBG #31 cast_monitor_stop_requested thread='MainThread'
+DBG #32 cleanup_run reason='flask-run-returned' stop_on_exit=True thread='MainThread'
+DBG #33 cast_monitor_stop_requested thread='MainThread'
+DBG #34 stop_active_cast_begin disconnect=True reason='flask-run-returned' stop_app=True thread='MainThread'
+DBG #35 cast_end app_id='84912283' namespaces=['urn:x-cast:com.google.cast.sse', 'urn:x-cast:com.google.cast.cac'] reason='flask-run-returned' thread='MainThread'
+DBG #36 stop_active_cast_done app_id='84912283' namespaces=['urn:x-cast:com.google.cast.sse', 'urn:x-cast:com.google.cast.cac'] reason='flask-run-returned' thread='MainThread'
+DBG #37 cleanup_skipped_already_done reason='flask-run-returned' thread='MainThread'
